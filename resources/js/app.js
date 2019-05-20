@@ -1,15 +1,13 @@
-import Inertia from 'inertia-vue'
-import Vue from 'vue'
+import Inertia from 'inertia-react'
+import React from 'react'
+import { render } from 'react-dom'
 
-Vue.use(Inertia)
+const app = document.getElementById('app')
 
-let app = document.getElementById('app')
-
-new Vue({
-  render: h => h(Inertia, {
-    props: {
-      initialPage: JSON.parse(app.dataset.page),
-      resolveComponent: name => import(`@/Pages/${name}`).then(module => module.default),
-    },
-  }),
-}).$mount(app)
+render(
+  <Inertia
+    initialPage={JSON.parse(app.dataset.page)}
+    resolveComponent={name => import(`@/Pages/${name}`).then(module => module.default)}
+  />,
+  app
+)

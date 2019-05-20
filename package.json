@@ -10,6 +10,7 @@
         "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
     },
     "devDependencies": {
+        "@babel/preset-react": "^7.0.0",
         "axios": "^0.18",
         "bootstrap": "^4.1.0",
         "cross-env": "^5.1",
@@ -26,6 +27,10 @@
     "dependencies": {
         "@babel/plugin-syntax-dynamic-import": "^7.2.0",
         "epic-spinners": "^1.1.0",
-        "inertia-vue": "github:inertiajs/inertia-vue"
+        "inertia-react": "github:inertiajs/inertia-react",
+        "inertia-vue": "github:inertiajs/inertia-vue",
+        "react": "^16.8.6",
+        "react-dom": "^16.8.6",
+        "react-epic-spinners": "^0.3.0"
     }
 }
