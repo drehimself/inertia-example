@@ -10,8 +10,6 @@ export default function Edit(props) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    console.log('useeffect bro');
-
     return () => {
       const abortController = new AbortController();
       abortController.abort();
