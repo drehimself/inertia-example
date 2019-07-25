@@ -19,13 +19,6 @@
             <input type="password" class="form-control" id="password" placeholder="Password" v-model="form.password">
           </div>
           <button type="submit" class="d-flex btn btn-primary" :disabled="loading">
-            <half-circle-spinner
-              v-if="loading"
-              :animation-duration="1000"
-              :size="20"
-              color="#fff"
-              class="mr-2"
-            />
             <span>Update User</span>
           </button>
         </form>
@@ -38,12 +31,10 @@
 
 <script>
 import Layout from '@/Shared/Layout'
-import { HalfCircleSpinner } from 'epic-spinners'
 
 export default {
   components: {
     Layout,
-    HalfCircleSpinner
   },
   props: ['user', 'errors'],
   data() {
