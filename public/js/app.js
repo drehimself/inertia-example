@@ -43,7 +43,7 @@
 /******/
 /******/ 	// script path function
 /******/ 	function jsonpScriptSrc(chunkId) {
-/******/ 		return __webpack_require__.p + "js/" + ({}[chunkId]||chunkId) + "." + {"0":"45ad49735f56c1bb6247","1":"765a183c88ea3021fca5","2":"64c80385514ac206095d","3":"d5d1d00f08cfbac742b4","4":"4d5c9327cd51abdbb784","5":"93d0efd9f91bfd24a32d","6":"4bc1d3f208dc6cb2a456"}[chunkId] + ".js"
+/******/ 		return __webpack_require__.p + "js/" + ({}[chunkId]||chunkId) + "." + {"0":"8334279daac6d7f41836","1":"e2c782cede54093b7317","2":"3d0cfcc459a4382160f4","3":"647cc0e9f12e70b7743e","4":"80de7535a5ccbe0e3efa","5":"fcd68ad0a636395a8feb","6":"337d41ec7bb97d2331ac"}[chunkId] + ".js"
 /******/ 	}
 /******/
 /******/ 	// The require function
@@ -1882,6 +1882,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+let app = {}
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'Inertia',
   props: {
@@ -1893,38 +1895,41 @@ __webpack_require__.r(__webpack_exports__);
       type: Function,
       required: true,
     },
-  },
-  provide() {
-    return {
-      page: this.page,
-    }
+    transformProps: {
+      type: Function,
+      default: props => props,
+    },
   },
   data() {
     return {
-      page: {
-        instance: null,
-        props: {},
-      },
+      component: null,
+      props: {},
+      key: null,
     }
   },
   created() {
-    inertia__WEBPACK_IMPORTED_MODULE_0__["default"].init(this.initialPage, page =>
-      Promise.resolve(this.resolveComponent(page.component)).then(instance => {
-        this.page.instance = instance
-        this.page.props = page.props
-      })
-    )
+    app = this
+    inertia__WEBPACK_IMPORTED_MODULE_0__["default"].init({
+      initialPage: this.initialPage,
+      resolveComponent: this.resolveComponent,
+      updatePage: (component, props, { preserveState }) => {
+        this.component = component
+        this.props = this.transformProps(props)
+        this.key = preserveState ? this.key : Date.now()
+      },
+    })
   },
   render(h) {
-    if (this.page.instance) {
-      return h(this.page.instance, {
-        key: window.location.pathname,
-        props: this.page.props,
+    if (this.component) {
+      return h(this.component, {
+        key: this.key,
+        props: this.props,
       })
     }
   },
   install(Vue) {
     Object.defineProperty(Vue.prototype, '$inertia', { get: () => inertia__WEBPACK_IMPORTED_MODULE_0__["default"] })
+    Object.defineProperty(Vue.prototype, '$page', { get: () => app.props })
     Vue.mixin(_remember__WEBPACK_IMPORTED_MODULE_2__["default"])
     Vue.component('InertiaLink', _link__WEBPACK_IMPORTED_MODULE_1__["default"])
   },
@@ -1974,6 +1979,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   functional: true,
   props: {
+    data: {
+      type: Object,
+      default: () => ({}),
+    },
     href: {
       type: String,
       required: true,
@@ -1987,6 +1996,10 @@ __webpack_require__.r(__webpack_exports__);
       default: false,
     },
     preserveScroll: {
+      type: Boolean,
+      default: false,
+    },
+    preserveState: {
       type: Boolean,
       default: false,
     },
@@ -2009,9 +2022,11 @@ __webpack_require__.r(__webpack_exports__);
             event.preventDefault()
 
             inertia__WEBPACK_IMPORTED_MODULE_0__["default"].visit(props.href, {
+              data: props.data,
               method: props.method,
-              preserveScroll: props.preserveScroll,
               replace: props.replace,
+              preserveScroll: props.preserveScroll,
+              preserveState: props.preserveState,
             })
           }
         },
@@ -2110,31 +2125,31 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var nprogress__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! nprogress */ "./node_modules/nprogress/nprogress.js");
-/* harmony import */ var nprogress__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(nprogress__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modal */ "./node_modules/inertia/src/modal.js");
+/* harmony import */ var _progress__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./progress */ "./node_modules/inertia/src/progress.js");
+
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  setPage: null,
+  resolveComponent: null,
+  updatePage: null,
   version: null,
+  visitId: null,
   cancelToken: null,
-  progressBar: null,
-  modal: null,
 
-  init(page, setPage) {
-    this.version = page.version
-    this.setPage = setPage
+  init({ initialPage, resolveComponent, updatePage }) {
+    this.resolveComponent = resolveComponent
+    this.updatePage = updatePage
 
     if (window.history.state && this.navigationType() === 'back_forward') {
       this.setPage(window.history.state)
     } else {
-      this.setPage(page)
-      this.setState(page)
+      initialPage.url += window.location.hash;
+      this.setPage(initialPage)
     }
 
     window.addEventListener('popstate', this.restoreState.bind(this))
-    document.addEventListener('keydown', this.hideModalOnEscape.bind(this))
   },
 
   navigationType() {
@@ -2147,64 +2162,59 @@ __webpack_require__.r(__webpack_exports__);
     return response && response.headers['x-inertia']
   },
 
-  showProgressBar() {
-    this.progressBar = setTimeout(() => nprogress__WEBPACK_IMPORTED_MODULE_1___default.a.start(), 100)
-  },
-
-  hideProgressBar() {
-    nprogress__WEBPACK_IMPORTED_MODULE_1___default.a.done()
-    clearTimeout(this.progressBar)
-  },
-
-  visit(url, { method = 'get', data = {}, replace = false, preserveScroll = false } = {}) {
-    this.hideModal()
-    this.showProgressBar()
-
+  cancelActiveVisits() {
     if (this.cancelToken) {
       this.cancelToken.cancel(this.cancelToken)
     }
 
     this.cancelToken = axios__WEBPACK_IMPORTED_MODULE_0___default.a.CancelToken.source()
+  },
+
+  createVisitId() {
+    this.visitId = {}
+    return this.visitId
+  },
+
+  visit(url, { method = 'get', data = {}, replace = false, preserveScroll = false, preserveState = false } = {}) {
+    _progress__WEBPACK_IMPORTED_MODULE_2__["default"].start()
+    this.cancelActiveVisits()
+    let visitId = this.createVisitId()
 
     return axios__WEBPACK_IMPORTED_MODULE_0___default()({
-      method: method,
-      url: url,
-      data: data,
+      method,
+      url,
+      data: method.toLowerCase() === 'get' ? {} : data,
+      params: method.toLowerCase() === 'get' ? data : {},
       cancelToken: this.cancelToken.token,
       headers: {
-        'Accept': 'text/html, application/xhtml+xml',
+        Accept: 'text/html, application/xhtml+xml',
         'X-Requested-With': 'XMLHttpRequest',
         'X-Inertia': true,
-        ...this.version ? { 'X-Inertia-Version': this.version } : {},
+        ...(this.version ? { 'X-Inertia-Version': this.version } : {}),
       },
     }).then(response => {
       if (this.isInertiaResponse(response)) {
         return response.data
       } else {
-        this.showModal(response.data)
+        _modal__WEBPACK_IMPORTED_MODULE_1__["default"].show(response.data)
       }
     }).catch(error => {
       if (axios__WEBPACK_IMPORTED_MODULE_0___default.a.isCancel(error)) {
         return
       } else if (error.response.status === 409 && error.response.headers['x-inertia-location']) {
+        _progress__WEBPACK_IMPORTED_MODULE_2__["default"].stop()
         return this.hardVisit(true, error.response.headers['x-inertia-location'])
       } else if (this.isInertiaResponse(error.response)) {
         return error.response.data
       } else if (error.response) {
-        this.showModal(error.response.data)
+        _progress__WEBPACK_IMPORTED_MODULE_2__["default"].stop()
+        _modal__WEBPACK_IMPORTED_MODULE_1__["default"].show(error.response.data)
       } else {
         return Promise.reject(error)
       }
     }).then(page => {
       if (page) {
-        this.version = page.version
-        this.setState(page, replace)
-        return this.setPage(page).then(() => {
-          this.setScroll(preserveScroll)
-          this.hideProgressBar()
-        })
-      } else {
-        this.hideProgressBar()
+        this.setPage(page, visitId, replace, preserveScroll, preserveState)
       }
     })
   },
@@ -2217,18 +2227,34 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
 
+  setPage(page, visitId = this.createVisitId(), replace = false, preserveScroll = false, preserveState = false) {
+    _progress__WEBPACK_IMPORTED_MODULE_2__["default"].increment()
+    return Promise.resolve(this.resolveComponent(page.component)).then(component => {
+      if (visitId === this.visitId) {
+        this.version = page.version
+        this.setState(page, replace, preserveState)
+        this.updatePage(component, page.props, { preserveState })
+        this.setScroll(preserveScroll)
+        _progress__WEBPACK_IMPORTED_MODULE_2__["default"].stop()
+      }
+    })
+  },
+
   setScroll(preserveScroll) {
     if (!preserveScroll) {
       window.scrollTo(0, 0)
     }
   },
 
-  setState(page, replace = false) {
-    replace = replace
-      || page.url === window.location.href
-      || (window.location.pathname === '/' && page.url === window.location.href.replace(/\/$/, ''))
-
-    window.history[replace ? 'replaceState' : 'pushState'](page, '', page.url)
+  setState(page, replace = false, preserveState = false) {
+    if (replace || page.url === `${window.location.pathname}${window.location.search}`) {
+      window.history.replaceState({
+        ...((preserveState && window.history.state) ? { cache: window.history.state.cache } : {}),
+        ...page,
+      }, '', page.url)
+    } else {
+      window.history.pushState(page, '', page.url)
+    }
   },
 
   restoreState(event) {
@@ -2238,7 +2264,7 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   replace(url, options = {}) {
-    return this.visit(url, { ...options, replace: true })
+    return this.visit(url, { preserveState: true, ...options, replace: true })
   },
 
   reload(options = {}) {
@@ -2246,15 +2272,15 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   post(url, data = {}, options = {}) {
-    return this.visit(url, { ...options, method: 'post', data })
+    return this.visit(url, { preserveState: true, ...options, method: 'post', data })
   },
 
   put(url, data = {}, options = {}) {
-    return this.visit(url, { ...options, method: 'put', data })
+    return this.visit(url, { preserveState: true, ...options, method: 'put', data })
   },
 
   patch(url, data = {}, options = {}) {
-    return this.visit(url, { ...options, method: 'patch', data })
+    return this.visit(url, { preserveState: true, ...options, method: 'patch', data })
   },
 
   delete(url, options = {}) {
@@ -2264,7 +2290,7 @@ __webpack_require__.r(__webpack_exports__);
   remember(data, key = 'default') {
     this.setState({
       ...window.history.state,
-      cache: { ...window.history.state.cache, [key]: data }
+      cache: { ...window.history.state.cache, [key]: data },
     })
   },
 
@@ -2273,8 +2299,25 @@ __webpack_require__.r(__webpack_exports__);
       return window.history.state.cache[key]
     }
   },
+});
 
-  showModal(html) {
+
+/***/ }),
+
+/***/ "./node_modules/inertia/src/modal.js":
+/*!*******************************************!*\
+  !*** ./node_modules/inertia/src/modal.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  modal: null,
+  listener: null,
+
+  show(html) {
     let page = document.createElement('html')
     page.innerHTML = html
     page.querySelectorAll('a').forEach(a => a.setAttribute('target', '_top'))
@@ -2286,7 +2329,7 @@ __webpack_require__.r(__webpack_exports__);
     this.modal.style.padding = '50px'
     this.modal.style.backgroundColor = 'rgba(0, 0, 0, .6)'
     this.modal.style.zIndex = 200000
-    this.modal.addEventListener('click', () => this.hideModal())
+    this.modal.addEventListener('click', () => this.hide())
 
     let iframe = document.createElement('iframe')
     iframe.style.backgroundColor = 'white'
@@ -2300,19 +2343,69 @@ __webpack_require__.r(__webpack_exports__);
     iframe.contentWindow.document.open()
     iframe.contentWindow.document.write(page.outerHTML)
     iframe.contentWindow.document.close()
+
+    this.listener = this.hideOnEscape.bind(this)
+    document.addEventListener('keydown', this.listener)
   },
 
-  hideModal() {
-    if (this.modal) {
-      this.modal.outerHTML = ''
-      this.modal = null
-      document.body.style.overflow = 'visible'
+  hide() {
+    this.modal.outerHTML = ''
+    this.modal = null
+    document.body.style.overflow = 'visible'
+    document.removeEventListener('keydown', this.listener)
+  },
+
+  hideOnEscape(event) {
+    if (event.keyCode === 27) {
+      this.hide()
+    }
+  },
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/inertia/src/progress.js":
+/*!**********************************************!*\
+  !*** ./node_modules/inertia/src/progress.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var nprogress__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! nprogress */ "./node_modules/nprogress/nprogress.js");
+/* harmony import */ var nprogress__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(nprogress__WEBPACK_IMPORTED_MODULE_0__);
+
+
+nprogress__WEBPACK_IMPORTED_MODULE_0___default.a.configure({ showSpinner: false })
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  delay: null,
+  loading: false,
+
+  start() {
+    clearTimeout(this.delay)
+
+    this.delay = setTimeout(() => {
+      this.loading = true
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default.a.set(0)
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default.a.start()
+    }, 250)
+  },
+
+  increment() {
+    if (this.loading) {
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default.a.inc(0.4)
     }
   },
 
-  hideModalOnEscape(event) {
-    if (this.modal && event.keyCode == 27) {
-      this.hideModal()
+  stop() {
+    clearTimeout(this.delay)
+
+    if (this.loading) {
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default.a.done()
+      this.loading = false
     }
   },
 });
