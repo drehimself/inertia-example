@@ -1,4 +1,4 @@
-import { InertiaLink } from 'inertia-react'
+import { InertiaLink } from '@inertiajs/inertia-react'
 import React from 'react'
 
 export default function Layout({ children }) {

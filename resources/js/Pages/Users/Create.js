@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 import Layout from '@/Shared/Layout'
-import { Inertia } from 'inertia-react';
+import { Inertia } from '@inertiajs/inertia'
 
 export default function Create(props) {
 

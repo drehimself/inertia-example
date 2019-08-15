@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Inertia } from 'inertia-react'
+import { Inertia } from '@inertiajs/inertia'
 import Layout from '@/Shared/Layout'
 import { HalfCircleSpinner } from 'react-epic-spinners'
 

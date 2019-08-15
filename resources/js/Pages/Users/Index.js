@@ -1,6 +1,6 @@
 import React from 'react'
 import Layout from '@/Shared/Layout'
-import { InertiaLink } from 'inertia-react'
+import { InertiaLink } from '@inertiajs/inertia-react'
 
 export default function Index(props) {
   return (
